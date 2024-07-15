@@ -1,86 +1,70 @@
-﻿namespace C__15
+
+namespace C__15
 {
     internal class Program
     {
         struct MyInfo
         {
-            long count;
-            long bites;
-            float procentCount;
-            float procentBites;
+            public long count;
+            public long bites;
+            public float procentCount;
+            public float procentBites;
 
             public MyInfo(long bites, long count)
             {
-                count = this.count;
-                bites = this.bites;
-                procentCount = count/100;
-                procentBites = bites/100;
+                this.count = count;
+                this.bites = bites;
+                procentCount = count / 100f;
+                procentBites = bites / 100f;
             }
 
-            public override string  ToString()
+            public override string ToString()
             {
                 return count + " " + bites + " " + procentCount + " " + procentBites;
             }
         }
+
         static void Main(string[] args)
         {
             DirectoryInfo root = new DirectoryInfo(@"C:\Users\user\Desktop\HTML\");
-            
-            FileInfo[] files = root.GetFiles();
+            FileInfo[] files = root.GetFiles("*", SearchOption.AllDirectories);
 
-            Dictionary<FileInfo, MyInfo> d = new Dictionary<FileInfo, MyInfo> ();
-           
-            foreach (FileInfo f in files)
+            Dictionary<string, MyInfo> d = new Dictionary<string, MyInfo>();
+
+            foreach (FileInfo file in files)
             {
-                FileInfo[] filesToRead = root.GetFiles("*.txt", SearchOption.AllDirectories);
-                int count = 0;
-
-                foreach (FileInfo f1 in filesToRead)
+                string extension = file.Extension;
+                if (!d.ContainsKey(extension))
                 {
-                    StreamReader tmp = f1.OpenText();
-                    if (!d.ContainsKey(f1))
-                    {
-                        d.Add(f1, new MyInfo(f1.Length, count));
-                    }
-                    else
-                    {
-                        count++;
-                    }
+                    d[extension] = new MyInfo(0, 0);
+                }
 
-                    tmp.Close();
-                } 
+                MyInfo info = d[extension];
+                info = new MyInfo(info.bites + file.Length, info.count + 1);
+                d[extension] = info;
             }
-            
-            foreach (var f in d)
+
+            Console.WriteLine("# | расширение | кол-во шт. | обший обьем в байтах | % от общего кол-ва | % от общего обьема");
+
+            int totalFiles = files.Length;
+            long totalSize = 0;
+            foreach (var file in files)
             {
-                Console.WriteLine(f.Key.Name +": " + f.Value.ToString());
+                totalSize += file.Length;
             }
-                      
 
-           Console.WriteLine("# \t расширение \t кол-во шт. \t обший обьем в байтах \t % от общего кол-ва \t % от общего обьема");
-           Console.WriteLine("1\t" + ".txt: \t\t\t" +  d.Keys.Count + "\t\t\t" + d.Values.Count + " ");
-
-
-
-            /*FileInfo[] filesToRead1 = root.GetFiles("*.rar", SearchOption.AllDirectories);
-
-            foreach (FileInfo f in filesToRead1)
+            int index = 1;
+            foreach (var entry in d)
             {
-                StreamReader tmp = f.OpenText();
-                count++;
-                tmp.Close();
-            }
-            Console.WriteLine("2\t" + ".rar: \t\t\t" + count + "\t\t\t\t\t" + (double)(count / 100));
+                string extension = entry.Key;
+                MyInfo info = entry.Value;
 
-            FileInfo[] filesToRead2 = root.GetFiles("*.zip", SearchOption.AllDirectories);
+                float procentCount = (info.count / (float)totalFiles) * 100;
+                float procentBites = (info.bites / (float)totalSize) * 100;
 
-            foreach (FileInfo f in filesToRead2)
-            {
-                StreamReader tmp = f.OpenText();
-                count++;
-                tmp.Close();
+                Console.WriteLine($"{index}\t{extension}: \t  {info.count}\t\t\t{info.bites}\t\t   {procentCount:F2}%\t\t{procentBites:F2}%");
+                index++;
             }
-            Console.WriteLine("3\t" + ".zip: \t\t\t" + count + "\t\t\t\t\t" + (double)(count / 100));*/
         }
     }
 }
